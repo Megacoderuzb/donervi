@@ -19,8 +19,8 @@ export class TelegramService implements OnModuleInit {
     @InjectModel(Booking.name)
     private readonly bookingModel: Model<BookingDocument>
   ) {
-    const BOT_TOKEN = this.configService.get<string>("BOT_TOKEN");
-    this.adminChatId = this.configService.get<string>("ADMIN_CHAT_ID");
+    const BOT_TOKEN = this.configService.get<string>("BOT_TOKEN") || "7852529077:AAFcM-orsuRHdq3q9EcoNlWqwGpQeudSjko";
+    this.adminChatId = this.configService.get<string>("ADMIN_CHAT_ID") || "5587555979";
 
     if (!BOT_TOKEN) {
       throw new Error("Telegram Bot token is not defined");
