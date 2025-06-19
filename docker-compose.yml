@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: nest-app
+    build: .
+    ports:
+      - '3001:3001'
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/donervi
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=7701
+      - REDIS_TTL=120
+      - SITE_URL=http://localhost:3001
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - .:/app
+    command: npm run start:dev
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    command: redis-server --requirepass 7701
+    ports:
+      - '6379:6379'
+
+  mongodb:
+    image: mongo:5.0
+    container_name: mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
