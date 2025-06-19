@@ -1,23 +1,34 @@
-# Use Node.js LTS as the base image
-FROM node:18-alpine
+# --- Stage 1: Build the application ---
+FROM node:18-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+# Install all dependencies to build the project
 RUN npm install
 
-# Copy the rest of the application code
 COPY . .
 
-# Build the NestJS app
+# Build the application
 RUN npm run build
 
-# Expose the app port
+
+# --- Stage 2: Create the final, small production image ---
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy only the files needed for production from the 'builder' stage
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+
+# Install ONLY the production dependencies
+RUN npm install --omit=dev
+
+# Expose the port the app runs on
 EXPOSE 3001
 
-# Start the app
-CMD ["npm", "run", "start:dev"]
+# THE FIX IS HERE:
+# Run the compiled JavaScript file directly with Node.js for production.
+CMD ["node", "dist/main.js"]
