@@ -1,39 +1,51 @@
-version: '3.9'
-
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: nest-app
-    build: .
+    restart: unless-stopped
     ports:
-      - '3001:3001'
+      # THE ONLY CHANGE IS HERE: Update the internal port to 4000
+      - '80:4000'
     environment:
+      # These environment variables remain the same
       - MONGO_URI=mongodb://mongodb:27017/donervi
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=7701
       - REDIS_TTL=120
-      - SITE_URL=http://localhost:3001
+      - SITE_URL=http://localhost:4000
     depends_on:
-      - mongodb
-      - redis
-    volumes:
-      - .:/app
-    command: npm run start:dev
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   redis:
     image: redis:6.2-alpine
     container_name: redis
+    restart: unless-stopped
     command: redis-server --requirepass 7701
-    ports:
-      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "7701", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:5.0
     container_name: mongodb
-    ports:
-      - '27017:27017'
+    restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
 volumes:
   mongo-data:
+    driver: local

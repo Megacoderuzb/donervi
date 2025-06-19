@@ -1,34 +1,46 @@
 # --- Stage 1: Build the application ---
-FROM node:18-alpine AS builder
+# Use the official Node.js 21 image
+FROM node:21 AS builder
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set the working directory
 WORKDIR /app
 
-COPY package*.json ./
+# Copy the dependency files
+COPY package.json pnpm-lock.yaml ./
 
-# Install all dependencies to build the project
-RUN npm install
+# Install all dependencies (including dev dependencies) to build the project
+RUN pnpm install
 
+# Copy the rest of your application's source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application for production
+RUN pnpm run build
 
 
-# --- Stage 2: Create the final, small production image ---
-FROM node:18-alpine
+# --- Stage 2: Create the final production image ---
+FROM node:21
 
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set the working directory
 WORKDIR /app
 
-# Copy only the files needed for production from the 'builder' stage
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
+# Copy dependency files from the 'builder' stage
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 
 # Install ONLY the production dependencies
-RUN npm install --omit=dev
+RUN pnpm install --prod
 
-# Expose the port the app runs on
-EXPOSE 3001
+# Copy the compiled application from the 'builder' stage
+COPY --from=builder /app/dist ./dist
 
-# THE FIX IS HERE:
-# Run the compiled JavaScript file directly with Node.js for production.
-CMD ["node", "dist/main.js"]
+# Expose the new port for your application
+EXPOSE 4000
+
+# The command to run your compiled application in production
+CMD [ "node", "dist/main.js" ]
