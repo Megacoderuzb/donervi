@@ -27,7 +27,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
         imports: [ConfigModule],
         inject: [ConfigService],
         useFactory: async (configService: ConfigService) => ({
-          uri: configService.get<string>('MONGO_URI', 'mongodb://mongodb:27017/donervi'),
+          uri: configService.get<string>('MONGO_URI', process.env.MONGO_URI || 'mongodb://mongo:27017/donervi'),
         }),
       }),
       
