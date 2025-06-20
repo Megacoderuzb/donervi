@@ -1,0 +1,23 @@
+name: Donervi
+
+on:
+  push:
+    branches: [ main ]  
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        node-version: '20'
+
+    - name: Build and run Docker Compose services
+      run: docker-compose up -d --build
+
+    - name: Stop and remove Docker Compose services
+      run: docker-compose down

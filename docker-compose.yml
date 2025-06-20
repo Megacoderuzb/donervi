@@ -6,10 +6,8 @@ services:
     container_name: nest-app
     restart: unless-stopped
     ports:
-      # THE ONLY CHANGE IS HERE: Update the internal port to 4000
-      - '80:4000'
+      - '4000:4000'
     environment:
-      # These environment variables remain the same
       - MONGO_URI=mongodb://mongodb:27017/donervi
       - REDIS_HOST=redis
       - REDIS_PORT=6379
